@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { Footer } from '../../components/commons/Footer';
 import { Menu } from '../../components/commons/Menu';
+import { useCmsData } from '../../infra/cms/useCmsData';
 import { Box, Text, theme } from '../../theme/components';
 
 export async function getStaticPaths() {
@@ -13,21 +14,29 @@ export async function getStaticPaths() {
   };
 }
 
-export function getStaticProps({ params }) {
+export async function getStaticProps({ params }) {
   const { id } = params;
+
+  const contentQuery = `
+    query{
+      allContentQuestions{
+        title,
+        content{
+          value
+        }
+      }
+    }
+  `;
+
+  const { data } = await useCmsData({
+    query: contentQuery,
+  })
+
   return {
     props: {
       id,
-      title: 'Fake Title',
-      content: `
-        <h2>Primeiro Tópico</h2>
-        <p>paragrafo simples</p>
-        <p>outro paragrafo simples</p>
-        <ul>
-          <li>Item de lista 01</li>
-          <li>Item de lista 02</li>
-        </ul>
-      `,
+      title: data.allContentQuestions[0].title,
+      content: data.allContentQuestions[0].content,
     }
   }
 }
